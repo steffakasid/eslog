@@ -38,7 +38,9 @@ func init() {
 // level to LevelDebug
 func initLogger(writer io.Writer, overwrite bool) {
 	if Logger == nil || overwrite {
-		logLevel.Set(slog.LevelDebug)
+		if logLevel == nil {
+			logLevel.Set(slog.LevelDebug)
+		}
 
 		opts := &slog.HandlerOptions{
 			Level: logLevel,
@@ -121,7 +123,7 @@ func Warnf(format string, args ...any) {
 // Fatalf logs at [LevelWarn]. The function uses fmt.Sprintf with given format and args
 // and log it.
 func (l eSlogLogger) Warnf(format string, args ...any) {
-	l.Warn(format, args...)
+	l.Warn(fmt.Sprintf(format, args...))
 }
 
 // Error logs at [LevelError]. Multiple args are joined with "  ".
