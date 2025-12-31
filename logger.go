@@ -12,6 +12,10 @@ import (
 // LevelFatal the constant to represent the fatal log level
 const (
 	LevelFatal = slog.Level(12)
+	// LevelPrint is a sentinel level used by Print/Printf/Println to
+	// indicate that the level attribute should be omitted from output.
+	// It is higher than default thresholds so it won't be filtered.
+	LevelPrint = slog.Level(16)
 )
 
 // levelNames maps the LevelFatal to string "FATAL"
@@ -34,6 +38,34 @@ func init() {
 	initLogger(os.Stdout, false)
 }
 
+// printAwareHandler wraps a slog.Handler and prints only the Record.Message
+// when the level equals LevelPrint, omitting standard key-value formatting.
+type printAwareHandler struct {
+	h slog.Handler
+	w io.Writer
+}
+
+func (p *printAwareHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	// Delegate to underlying handler; LevelPrint is used via direct Handle calls.
+	return p.h.Enabled(ctx, level)
+}
+
+func (p *printAwareHandler) Handle(ctx context.Context, r slog.Record) error {
+	if r.Level == LevelPrint {
+		_, err := io.WriteString(p.w, r.Message)
+		return err
+	}
+	return p.h.Handle(ctx, r)
+}
+
+func (p *printAwareHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &printAwareHandler{h: p.h.WithAttrs(attrs), w: p.w}
+}
+
+func (p *printAwareHandler) WithGroup(name string) slog.Handler {
+	return &printAwareHandler{h: p.h.WithGroup(name), w: p.w}
+}
+
 // initLogger initializes the Logger and enables LevelFatal. Also it sets the default log
 // level to LevelDebug
 func initLogger(writer io.Writer, overwrite bool) {
@@ -47,6 +79,10 @@ func initLogger(writer io.Writer, overwrite bool) {
 			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
 				if a.Key == slog.LevelKey {
 					level := a.Value.Any().(slog.Level)
+					// Drop level attribute for sentinel LevelPrint.
+					if level == LevelPrint {
+						return slog.Attr{}
+					}
 					levelLabel, exists := levelNames[level]
 					if !exists {
 						levelLabel = level.String()
@@ -58,7 +94,7 @@ func initLogger(writer io.Writer, overwrite bool) {
 		}
 
 		Logger = &eSlogLogger{
-			Logger: slog.New(slog.NewTextHandler(writer, opts)),
+			Logger: slog.New(&printAwareHandler{h: slog.NewTextHandler(writer, opts), w: writer}),
 		}
 	}
 }
@@ -73,6 +109,40 @@ func (l *eSlogLogger) SetOutput(w io.Writer) {
 // SetLogLevel sets the LogLevel of the Logger
 func (l *eSlogLogger) SetLogLevel(lvl string) error {
 	return logLevel.UnmarshalText([]byte(lvl))
+}
+
+// Print logs a simple, unstructured message to the configured Logger.
+// The message is produced by fmt.Sprint over args and sent via context.Background.
+// No level, timestamp, or attributes are set on the record; the Handler may supply defaults.
+// Prefer structured or leveled logging APIs for richer context or severity control.
+func Print(args ...any) {
+	Logger.Handler().Handle(context.Background(), slog.Record{
+		Level:   LevelPrint,
+		Message: fmt.Sprint(args...),
+	})
+}
+
+// Printf formats and logs a message using the package's default Logger.
+//
+// It applies fmt.Sprintf to the provided format and arguments, then submits the
+// resulting text to the Logger's Handler with a background context. This helper
+// emits only the message and does not set a level or attach attributes; prefer
+// structured, leveled logging APIs when additional context is required.
+func Printf(format string, args ...any) {
+	Logger.Handler().Handle(context.Background(), slog.Record{
+		Level:   LevelPrint,
+		Message: fmt.Sprintf(format, args...),
+	})
+}
+
+// Println logs a line by formatting args with fmt.Sprintln (space‑separated, with a trailing newline)
+// and sending the resulting message to the configured Logger’s Handler using context.Background().
+// It is a convenience wrapper similar to fmt.Println and does not set an explicit log level or add attributes.
+func Println(args ...any) {
+	Logger.Handler().Handle(context.Background(), slog.Record{
+		Level:   LevelPrint,
+		Message: fmt.Sprintln(args...),
+	})
 }
 
 // Debugf logs at [LevelDebug]. Multiple args are joined with "  ".
