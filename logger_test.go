@@ -9,8 +9,7 @@ import (
 	"testing"
 
 	"github.com/steffakasid/eslog"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/steffakasid/eslog/internal/assert"
 )
 
 func TestDebug(t *testing.T) {
@@ -32,16 +31,16 @@ func TestDebug(t *testing.T) {
 	for _, tst := range tests {
 		t.Run(tst.name, func(t *testing.T) {
 			r, w, err := os.Pipe()
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			eslog.Logger.SetOutput(w)
 			err = eslog.Logger.SetLogLevel("Debug")
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			eslog.Debugf(tst.message, tst.args...)
 			w.Close()
 
 			out, err := io.ReadAll(r)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			assert.Contains(t, string(out), tst.expected)
 		})
@@ -64,17 +63,17 @@ func TestInfo(t *testing.T) {
 	for _, tst := range tests {
 		t.Run(tst.name, func(t *testing.T) {
 			r, w, err := os.Pipe()
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			eslog.Logger.SetOutput(w)
 			err = eslog.Logger.SetLogLevel("Info")
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			eslog.Infof(tst.message, tst.args...)
 			w.Close()
 
 			out, err := io.ReadAll(r)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			assert.Contains(t, string(out), tst.expected)
 		})
@@ -96,16 +95,16 @@ func TestWarn(t *testing.T) {
 	for _, tst := range tests {
 		t.Run(tst.name, func(t *testing.T) {
 			r, w, err := os.Pipe()
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			eslog.Logger.SetOutput(w)
 			err = eslog.Logger.SetLogLevel("Warn")
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			eslog.Warnf(tst.message, tst.args...)
 			w.Close()
 
 			out, err := io.ReadAll(r)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			assert.Contains(t, string(out), tst.expected)
 		})
@@ -128,14 +127,14 @@ func TestError(t *testing.T) {
 	for _, tst := range tests {
 		t.Run(tst.name, func(t *testing.T) {
 			r, w, err := os.Pipe()
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			eslog.Logger.SetOutput(w)
 			eslog.Logger.Errorf(tst.format, tst.args...)
 			w.Close()
 
 			out, err := io.ReadAll(r)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			assert.Contains(t, string(out), tst.expected)
 		})
@@ -152,32 +151,32 @@ func TestFatalfWithFork(t *testing.T) {
 	cmd.Env = append(os.Environ(), "TEST_FATAL=1")
 	out, err := cmd.CombinedOutput()
 
-	assert.Error(t, err) // Expect an error because os.Exit was called
+	assert.IsError(t, err) // Expect an error because os.Exit was called
 	assert.Contains(t, string(out), "fatal test")
 }
 
 func TestSetOutput(t *testing.T) {
 	r, w, err := os.Pipe()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	eslog.Logger.SetOutput(w)
 	err = eslog.Logger.SetLogLevel("Debug")
-	require.NoError(t, err)
+	assert.NoError(t, err)
 	eslog.Logger.Infof("test output")
 	w.Close()
 
 	out, err := io.ReadAll(r)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Contains(t, string(out), "test output")
 }
 
 func TestSetLogLevel(t *testing.T) {
 	err := eslog.Logger.SetLogLevel("Info")
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	r, w, err := os.Pipe()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	eslog.Logger.SetOutput(w)
 	eslog.Debug("this should not appear")
@@ -185,7 +184,7 @@ func TestSetLogLevel(t *testing.T) {
 	w.Close()
 
 	out, err := io.ReadAll(r)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.NotContains(t, string(out), "this should not appear")
 	assert.Contains(t, string(out), "this should appear")
@@ -193,7 +192,7 @@ func TestSetLogLevel(t *testing.T) {
 
 func TestLogIfError(t *testing.T) {
 	r, w, err := os.Pipe()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	eslog.Logger.SetOutput(w)
 	errToLog := errors.New("test error")
@@ -201,14 +200,14 @@ func TestLogIfError(t *testing.T) {
 	w.Close()
 
 	out, err := io.ReadAll(r)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Contains(t, string(out), "an error occurred")
 }
 
 func TestLogIfErrorf(t *testing.T) {
 	r, w, err := os.Pipe()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	eslog.Logger.SetOutput(w)
 	errToLog := errors.New("test error")
@@ -216,21 +215,21 @@ func TestLogIfErrorf(t *testing.T) {
 	w.Close()
 
 	out, err := io.ReadAll(r)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Contains(t, string(out), "error: additional info")
 }
 
 func TestCustomLogLevel(t *testing.T) {
 	r, w, err := os.Pipe()
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	eslog.Logger.SetOutput(w)
 	eslog.Logger.Log(context.Background(), eslog.LevelFatal, "fatal level log")
 	w.Close()
 
 	out, err := io.ReadAll(r)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	assert.Contains(t, string(out), "FATAL")
 	assert.Contains(t, string(out), "fatal level log")
@@ -249,7 +248,7 @@ func TestPrint(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			r, w, err := os.Pipe()
-			require.NoError(t, err)
+            assert.NoError(t, err)
 
 			eslog.Logger.SetOutput(w)
 
@@ -257,7 +256,7 @@ func TestPrint(t *testing.T) {
 			w.Close()
 
 			out, err := io.ReadAll(r)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			assert.Equal(t, c.expected, string(out))
 		})
 	}
@@ -280,14 +279,14 @@ func TestPrintf(t *testing.T) {
 	for _, c := range cases {
 		t.Run("TestPrintf_"+c.name, func(t *testing.T) {
 			r, w, err := os.Pipe()
-			require.NoError(t, err)
+			assert.NoError(t, err)
 
 			eslog.Logger.SetOutput(w)
 			eslog.Printf(c.format, c.args...)
 			w.Close()
 
 			out, err := io.ReadAll(r)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			assert.Equal(t, c.expected, string(out))
 		})
 	}
@@ -307,15 +306,15 @@ func TestPrintln(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r, w, err := os.Pipe()
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			eslog.Logger.SetOutput(w)
 
 			eslog.Println(tt.args...)
 			_ = w.Close()
 
 			out, err := io.ReadAll(r)
-			require.NoError(t, err)
-			assert.Equal(t, tt.want, string(out))
+			assert.NoError(t, err)
+            assert.Equal(t, tt.want, string(out))
 		})
 	}
 }

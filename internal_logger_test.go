@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/steffakasid/eslog/internal/assert"
 )
 
 func TestConvertAnytoString(t *testing.T) {
@@ -44,6 +44,7 @@ func TestConvertAnytoString(t *testing.T) {
 	for name, test := range tblTest {
 		t.Run(name, func(t *testing.T) {
 			testResult := convertAnyToString(test.anything...)
+
 			assert.Equal(t, test.expected, testResult)
 		})
 	}
