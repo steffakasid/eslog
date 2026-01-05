@@ -2,7 +2,7 @@
 
 Lightweight, structured logger for Go projects. It basically adds some functions to slog which I found missing (e.g. log*f functions and a logFatal function known from standard log package.). Slog is wrapped inside eslog so you can do everything which is possible with slog.
 
-This project is indended to not have any dapendencies. The only direct dependency is on `github.com/stretchr/testify` as I prefer it for my unittests.
+This project is intended to not have any dapendencies.
 
 
 ## Install
