@@ -1,3 +1,5 @@
+[![Go Test](https://github.com/steffakasid/eslog/actions/workflows/go-test.yml/badge.svg)](https://github.com/steffakasid/eslog/actions/workflows/go-test.yml) [![CodeQL](https://github.com/steffakasid/eslog/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/steffakasid/eslog/actions/workflows/codeql-analysis.yml) [![Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+
 # eslog
 
 Lightweight, structured logger for Go projects. It basically adds some functions to slog which I found missing (e.g. log*f functions and a logFatal function known from standard log package.). Slog is wrapped inside eslog so you can do everything which is possible with slog.
