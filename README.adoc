@@ -1,0 +1,37 @@
+image:https://github.com/steffakasid/eslog/actions/workflows/go-test.yml/badge.svg[Go Test]
+image:https://github.com/steffakasid/eslog/actions/workflows/codeql-analysis.yml/badge.svg[CodeQL]
+image:https://img.shields.io/badge/License-Apache%202.0-blue.svg[Apache-2.0]
+
+= eslog
+
+Lightweight, structured logger for Go projects. It basically adds some functions to slog which I found missing (e.g. log*f functions and a logFatal function known from standard log package.). Slog is wrapped inside eslog so you can do everything which is possible with slog.
+
+NOTE: This project is intended to not have any dependencies.
+
+== Install
+
+[source,bash]
+----
+go get github.com/steffakasid/eslog@latest
+----
+
+== Quick start
+
+[source,go]
+----
+include::./examples/main.go[]
+----
+
+== Configuration
+
+* log.level: debug|info|warn|error
+* log.format: json|text
+* output (optional): file path or stdout/stderr
+
+== Contributing
+
+PRs welcome. Please follow gofmt and golangci-lint rules.
+
+== License
+
+Apache v2
